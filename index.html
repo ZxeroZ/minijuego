@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Studio</title>
+</head>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 50px;
+    background-color: #f8f8f8;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.balance, .game {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.teams {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.team-button {
+    font-size: 16px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.team-button:hover {
+    background-color: #0056b3;
+}
+
+#betAmount {
+    padding: 10px;
+    font-size: 16px;
+    width: 100px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+#localTeam, #visitorTeam {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+#result {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: #28a745;
+}
+
+.btn-play {
+    font-size: 18px;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-play:hover {
+    background-color: #218838;
+}
+
+
+
+
+</style>
+<body>
+    <div class="container">
+        <div class="balance">Balance: <span id="balance">10</span> monedas</div>
+        <div class="game">
+            <h2>Football Studio</h2>
+            <div class="teams">
+                <button class="team-button" onclick="confirmarApostar('Local')">Apostar Local</button>
+                <button class="team-button" onclick="confirmarApostar('Visitante')">Apostar Visitante</button>
+            </div>
+            <input type="number" id="betAmount" min="1" max="10" placeholder="Monto de apuesta" oninput="updateTemporaryBalance()">
+            <div id="localTeam">Local: -</div>
+            <div id="visitorTeam">Visitante: -</div>
+            <div id="result"></div>
+            <button class="btn-play" onclick="playGame()">Jugar</button>
+        </div>
+
+        <div class="rewards">
+            <h2>Canjear por video</h2>
+            <button class="btn-reward" onclick="canjearPorVideo()">100 monedas</button>
+        </div>
+       
+        <button class="btn-free-coins" onclick="obtenerMonedasGratis()">Monedas Gratis</button>
+
+        
+    </div>
+    </div>
+
+    <script>
+        let balance = 10;
+        let temporaryBalance = balance;
+
+        function updateTemporaryBalance() {
+            const betAmount = parseInt(document.getElementById('betAmount').value);
+            if (betAmount > 0 && betAmount <= balance) {
+                temporaryBalance = balance - betAmount;
+                document.getElementById('balance').textContent = temporaryBalance;
+            } else {
+                temporaryBalance = balance;
+                document.getElementById('balance').textContent = temporaryBalance;
+            }
+        }
+
+        function confirmarApostar(equipo) {
+            const montoApostado = parseInt(document.getElementById('betAmount').value);
+
+            if (montoApostado > 0 && montoApostado <= balance) {
+                if (confirm(`Apostarás ${montoApostado} monedas al equipo ${equipo}. ¿Estás seguro de continuar?`)) {
+                    placeBet(equipo.toLowerCase());
+                }
+            } else {
+                alert('Monto de apuesta inválido. Asegúrate de ingresar un valor entre 1 y tu balance actual.');
+            }
+        }
+
+        function placeBet(team) {
+            const betAmount = parseInt(document.getElementById('betAmount').value);
+
+            if (betAmount > 0 && betAmount <= balance) {
+                document.getElementById('localTeam').textContent = `Local: ?`;
+                document.getElementById('visitorTeam').textContent = `Visitante: ?`;
+                document.getElementById('result').textContent = '';
+
+                // Deshabilitar el input de apuesta y los botones de apuesta
+                document.getElementById('betAmount').disabled = true;
+                document.querySelectorAll('.team-button').forEach(button => button.disabled = true);
+
+                // Habilitar el botón de jugar
+                document.querySelector('.btn-play').disabled = false;
+            } else {
+                alert('Monto de apuesta inválido. Asegúrate de ingresar un valor entre 1 y tu balance actual.');
+            }
+        }
+
+        function playGame() {
+            let count = 5; // Contador de segundos
+            const countdownInterval = setInterval(function() {
+                document.getElementById('result').textContent = `Mostrando resultados en ${count} segundos...`;
+                count--;
+                if (count < 0) {
+                    clearInterval(countdownInterval);
+                    mostrarResultados();
+                }
+            }, 1000);
+        }
+
+        function mostrarResultados() {
+            const localScore = Math.floor(Math.random() * 6) + 1;
+            const visitorScore = Math.floor(Math.random() * 6) + 1;
+
+            document.getElementById('localTeam').textContent = `Local: ${localScore}`;
+            document.getElementById('visitorTeam').textContent = `Visitante: ${visitorScore}`;
+
+            const betAmount = parseInt(document.getElementById('betAmount').value);
+
+            if (localScore > visitorScore) {
+                balance += betAmount; // Se suma el monto apostado
+                document.getElementById('balance').textContent = balance;
+                document.getElementById('result').textContent = `¡Ganaste ${betAmount} monedas! (Monto apostado: ${betAmount})`;
+            } else if (localScore < visitorScore) {
+                balance -= betAmount;
+                document.getElementById('balance').textContent = balance;
+                document.getElementById('result').textContent = `Perdiste ${betAmount} monedas.`;
+            } else {
+                balance += betAmount / 2; // Se devuelve la mitad del monto apostado
+                document.getElementById('balance').textContent = balance;
+                document.getElementById('result').textContent = `Empate. Se te devuelven ${betAmount / 2} monedas. (Monto apostado: ${betAmount})`;
+            }
+
+            // Habilitar el input de apuesta y los botones de apuesta
+            document.getElementById('betAmount').disabled = false;
+            document.querySelectorAll('.team-button').forEach(button => button.disabled = false);
+
+            // Deshabilitar el botón de jugar
+            document.querySelector('.btn-play').disabled = true;
+
+            // Limpiar el campo de apuesta
+            document.getElementById('betAmount').value = '';
+            temporaryBalance = balance; // Restaurar temporaryBalance
+        }
+
+        function canjearPorVideo() {
+    if (balance >= 100) {
+        const confirmar = confirm('¿Estás seguro de descargar el video?');
+        if (confirmar) {
+            const videoUrl = './Hola.mp4'; // Nombre del video
+            const a = document.createElement('a');
+            a.href = videoUrl;
+            a.download = 'video.mp4';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            balance -= 100;
+            document.getElementById('balance').textContent = balance;
+        }
+    } else {
+        alert('No tienes suficientes fondos. ¡Sigue jugando!');
+    }
+}
+
+
+let canClickFreeCoins = true;
+
+function generarPremio() {
+    const probabilidad = Math.random() * 100;
+
+    if (probabilidad < 40) {
+        return 0;
+    } else if (probabilidad < 70) {
+        return 10;
+    } else if (probabilidad < 90) {
+        return 50;
+    } else {
+        return 80;
+    }
+}
+
+function obtenerMonedasGratis() {
+    if (canClickFreeCoins) {
+        canClickFreeCoins = false;
+
+        setTimeout(function() {
+            canClickFreeCoins = true;
+        }, 300000); // 20 minutos en milisegundos
+
+        const premio = generarPremio();
+        balance += premio;
+        temporaryBalance += premio; // Actualiza también temporaryBalance
+        document.getElementById('balance').textContent = temporaryBalance; // Actualiza el elemento en el DOM
+
+        alert(`¡Felicidades! Ganaste ${premio} monedas.`);
+    } else {
+        alert('Debes esperar 5m para reclamar más monedas gratis.');
+    }
+}
+
+
+
+    </script>
+</body>
+</html>
